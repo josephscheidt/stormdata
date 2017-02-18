@@ -1,0 +1,43 @@
+---
+title: "Severe Weather Event Analysis"
+author: "Joseph Scheidt"
+date: "January 26, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r download}
+
+fileURL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+
+download.file(fileURL, "stormdata.csv")
+rawdata <- read.csv("stormdata.csv")
+```
+
+The raw data are not in great shape for analysis, so a thorough preprocessing of the data will be necessary.
+
+First, three observations for the state code variables are incorrect. They can be corrected individually, using the remarks column to determine which state code should be assigned to each.
+
+Next, the raw data include 985 event types, whereas the National Weather Service documentation indicates there should only be 48. This is mostly due to overspecification, mixed case, and inconsistent abbreviation. Serious preprocessing will be necessary to conform the raw data to expectations. Also, some summary observations of particular dates with multiple events are included in the data set, so they should be removed to prevent double counting in the analysis.
+
+```{r preprocessing}
+
+stormdata <- rawdata
+
+##fix state code errors (details in readme)
+stormdata[stormdata$REFNUM==203904, 7] <- "KS"
+stormdata[stormdata$REFNUM==773819, 7] <- "SL"
+stormdata[stormdata$REFNUM==881141, 7] <- "SL"
+
+##convert EVTYPE variable to upper case character for editing
+stormdata$EVTYPE <- toupper(as.character(stormdata$EVTYPE))
+
+##remove summary data
+stormdata <- stormdata[-grep("^SUMMARY.*", stormdata$EVTYPE),]
+
+
+```
